@@ -1,0 +1,38 @@
+html,
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+nav,
+ul,
+li {
+  margin: 0;
+  padding: 0;
+}
+.clearfix:after {
+  clear: both;
+  content: '';
+  display: block;
+}
+input {
+  border: 0;
+  outline: none;
+}
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+a {
+  display: block;
+  text-decoration: none;
+  color: white;
+}
+ul {
+  list-style: none;
+}
