@@ -9,20 +9,20 @@
         </h1>
         <nav class="menu">
           <ul class="list">
-            <li>
-              <a href="javascript:;">首页</a>
+            <li :class="{active: $route.path === '/main'}">
+              <a href="javascript:;" @click="$router.push('/')">首页</a>
             </li>
-            <li>
-              <router-link to="/main/music">歌曲</router-link>
+            <li :class="{active: $route.path === '/main/music'}">
+              <a href="javascript:;" @click="$router.push('/main/music')">歌单</a>
             </li>
-            <li>
-              <a href="javascript:;">排行榜</a>
+            <li :class="{active: $route.path === '/main/order'}">
+              <a href="javascript:;" @click="$router.push('/main/order')">排行榜</a>
             </li>
-            <li>
-              <a href="javascript:;">视频</a>
+            <li :class="{active: $route.path === '/main/video'}">
+              <a href="javascript:;" @click="$router.push('/main/video')">视频</a>
             </li>
-            <li>
-              <a href="javascript:;">电台</a>
+            <li :class="{active: $route.path === '/main/fm'}">
+              <a href="javascript:;" @click="$router.push('/main/fm')">电台</a>
             </li>
           </ul>
         </nav>
@@ -32,7 +32,8 @@
           </a>
         </div>
         <div class="search">
-            <input type="text" placeholder="输入歌曲名" onfocus="this.placeholder=''" onblur="this.placeholder='输入歌曲名'">
+            <input type="text" v-model="keywords" placeholder="输入歌曲名" onfocus="this.placeholder=''" onblur="this.placeholder='输入歌曲名'">
+            <span class="searchIcon el-icon-search" @click="gotoMusicList()"></span>
         </div>
       </div>
     </div>
@@ -41,25 +42,68 @@
       <el-main>
         <div v-if="this.$route.path === '/main'" class="index">
             <div class="banner">
-              <!-- <ul class="list clearfix" ref="list">
-                <li v-for="(image, index) in imgs" :key="index">
-                  <a href="javascript:;">
-                    <img :src="image" alt="">
-                  </a>
-                </li>
-              </ul> -->
                 <div class="swiper-container">
                   <div class="swiper-wrapper">
-                      <div class="swiper-slide" v-for="(image, index) in imgs" :key="index">
+                      <div class="swiper-slide" v-for="(item, index) in indexBanner.banners" :key="index">
                         <a href="javascript:;">
-                          <img :src="image" alt="">
+                          <img :src="item.imageUrl" alt="">
                         </a>
                       </div>
                   </div>
                   <div class="swiper-pagination"></div>
                   <div class="swiper-button-prev"></div>
                   <div class="swiper-button-next"></div>
-              </div>
+                </div>
+            </div>
+            <!-- 推荐歌单 -->
+            <div class="content">
+              <el-row :gutter="5">
+                 <el-col :span="8">
+                   <el-card :body-style="cardStyle">
+                     <span class="title">推荐mv</span>
+                     <div class="itemContent">
+                       <div class="item" v-for="(item, index) in personalizedMv" :key="index">
+                         <el-image
+                              lazy
+                              :src="item.picUrl"
+                              fit="fill">
+                          </el-image>
+                         <div class="text"><a href="">{{item.copywriter}}</a></div>
+                       </div>
+                     </div>
+                   </el-card>
+                 </el-col>
+                 <el-col :span="8">
+                   <el-card :body-style="cardStyle">
+                      <span class="title">推荐歌单</span>
+                      <div class="itemContent">
+                       <div class="item" v-for="(item, index) in personalized" :key="index">
+                         <el-image
+                              lazy
+                              :src="item.picUrl"
+                              fit="fill">
+                          </el-image>
+                         <div class="text"><a href="">{{item.name}}</a></div>
+                       </div>
+                     </div>
+                   </el-card>
+                 </el-col>
+                 <el-col :span="8">
+                   <el-card :body-style="cardStyle">
+                     <span class="title">推荐新音乐</span>
+                     <div class="itemContent">
+                       <div class="item" v-for="(item, index) in personalizedNewsong" :key="index">
+                         <el-image
+                              lazy
+                              :src="item.picUrl"
+                              fit="fill">
+                          </el-image>
+                         <div class="text"><a href="">{{item.name}}</a></div>
+                       </div>
+                     </div>
+                   </el-card>
+                 </el-col>
+               </el-row>
             </div>
         </div>
         <router-view></router-view>
@@ -71,15 +115,32 @@
 <script type="text/ecmascript-6">
 import Swiper from 'swiper'
 import 'swiper/css/swiper.min.css'
+import { mapState } from 'vuex'
 export default {
   data () {
     return {
-      imgs: [
-        'http://www.ysc66.com/Uploads//banner/2017-10-31/59f7f3a334aeb_1920x500.png',
-        'http://www.ysc66.com/Public/Home/images/infomation/banner.png',
-        'http://www.ysc66.com/Uploads//banner/2017-11-10/5a054c1c9376b_1920x500.png'
-      ]
+      keywords: '',
+      bannerArr: [],
+      // 卡片内部样式
+      cardStyle: {
+        padding: '0px',
+        width: '100%',
+        height: '100%',
+        background: '#eee'
+      },
+      // 推荐mv
+      personalizedMv: [],
+      // 推荐歌单
+      personalized: [],
+      personalizedNewsong: []
     }
+  },
+  created () {
+    // 推荐mv
+    this.getPersonalizedMv()
+    // 推荐歌单
+    this.getPersonalized()
+    this.getPersonalizedNewsong()
   },
   mounted () {
     this.$nextTick(() => {
@@ -99,6 +160,42 @@ export default {
         }
       })
     })
+  },
+  methods: {
+    async getPersonalizedMv () {
+      const { data } = await this.$http.get('/personalized/mv')
+      if (data.code === 200) {
+        this.personalizedMv = data.result
+      }
+    },
+    async getPersonalized () {
+      const { data } = await this.$http.get('/personalized')
+      if (data.code === 200) {
+        this.personalized = data.result
+      }
+    },
+    async getPersonalizedNewsong () {
+      const { data } = await this.$http.get('/personalized/newsong')
+      if (data.code === 200) {
+        this.personalizedNewsong = data.result
+      }
+    },
+    // 查询歌曲
+    gotoMusicList () {
+      let keywords = this.keywords
+      if (this.keywords) {
+        this.$router.push({ path: '/main/musiclist', query: { keywords } })
+      } else {
+        this.$message.warning({
+          showClose: true,
+          message: '请输入歌曲名字',
+          type: 'wraning'
+        })
+      }
+    }
+  },
+  computed: {
+    ...mapState(['indexBanner'])
   }
 }
 
@@ -113,12 +210,12 @@ export default {
 .el-aside {
   padding-top: 70px;
   height: 100%;
-  background-color: #f34343;
+  background-color: #f13d3d;
 }
 .el-main {
-  padding-top: 70px;
-  background-color: #f5f0f0;
+  background-color: #e24343;
   overflow: hidden;
+  padding: 70px 0 0 0;
 }
 .head {
     position: absolute;
@@ -155,6 +252,9 @@ export default {
               background-color: #484848;
               transition: .5s background-color;
             }
+            &.active{
+              background-color: #484848;
+            }
           }
         }
       }
@@ -176,6 +276,15 @@ export default {
           height: 28px;
           border-radius: 20px;
           text-indent: 10px;
+        }
+        .searchIcon {
+          position: absolute;
+          font-weight: bold;
+          color: red;
+          font-size: 16px;
+          right: 10px;
+          top: 27px;
+          cursor: pointer;
         }
       }
       // 登录按钮
@@ -272,11 +381,11 @@ export default {
    .banner {
      margin: 0 auto;
      .swiper-container {
-       width: 900px;
+       width: 1000px;
        height: 300px;
        box-shadow: 2px 2px 2px gray;
        .swiper-slide  img {
-         width: 900px;
+         width: 1000px;
          height: 300px;
        }
        .swiper-button-prev {
@@ -289,6 +398,60 @@ export default {
          color: red;
          &::after{
            font-size: 60px;
+         }
+       }
+     }
+   }
+   .content {
+     width: 100%;
+     height: 100%;
+     .el-row {
+       height: 100%;
+       .el-col {
+         height: 100%;
+         .el-card {
+           height: 300px;
+           margin: 5px;
+           border-radius: 10px;
+           .itemContent {
+             width: 100%;
+             height: 100%;
+             overflow: auto;
+             .item {
+               width: 100%;
+               height: 80px;
+               padding: 0px 5px;
+               border-top: 1px solid #ddd;
+               .el-image {
+                 float: left;
+                 width: 30%;
+                 height: 70px;
+                 border-radius: 5px;
+                 margin-top: 5px;
+                 &:hover {
+                   box-shadow: 1px 1px 1px gray;
+                   transition: 1s box-shadow;
+                 }
+               }
+               .text{
+                 float: right;
+                 height: 100%;
+                 width: 70%;
+                 text-align: center;
+                 a{
+                   margin-top: 20px;
+                   color: rgb(235, 0, 0);
+                   font-weight: bold;
+                   font-size: 14px;
+                 }
+               }
+             }
+           }
+           .title {
+             color: rgb(54, 54, 54);
+             font-size: 18px;
+             font-weight: bold;
+           }
          }
        }
      }

@@ -5,7 +5,14 @@ import {
   Input,
   Container,
   Aside,
-  Main
+  Main,
+  Row,
+  Col,
+  Card,
+  Table,
+  TableColumn,
+  Image,
+  Message
 } from 'element-ui'
 
 Vue.use(Button)
@@ -14,3 +21,10 @@ Vue.use(Input)
 Vue.use(Container)
 Vue.use(Aside)
 Vue.use(Main)
+Vue.use(Row)
+Vue.use(Col)
+Vue.use(Card)
+Vue.use(Table)
+Vue.use(TableColumn)
+Vue.use(Image)
+Vue.prototype.$message = Message

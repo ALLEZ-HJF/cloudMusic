@@ -5,8 +5,14 @@
 </template>
 
 <script>
-
+import { mapActions } from 'vuex'
 export default {
+  mounted () {
+    this.getIndexBanner()
+  },
+  methods: {
+    ...mapActions(['getIndexBanner'])
+  }
 }
 </script>
 
