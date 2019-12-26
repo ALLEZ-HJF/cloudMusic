@@ -2,7 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Main from '../components/Main/Main'
 import Music from '../views/music/Music'
-import MusicList from '../components/MusicList/MusicList'
+import MusicList from '../components/Music/MusicList'
 Vue.use(VueRouter)
 
 const routes = [

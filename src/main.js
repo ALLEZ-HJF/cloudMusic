@@ -2,6 +2,8 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import './assets/css/reset.css'
+// 引入iconfont样式
+import './assets/font/iconfont.css'
 import './plugins/element.js'
 import store from './store'
 import axios from 'axios'

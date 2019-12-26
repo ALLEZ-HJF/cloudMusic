@@ -1,0 +1,25 @@
+.itemSlide(@bgw:300px, @fgw:300px, @il:150px, @ic:white, @bgc:gray, @fgc:red) {
+  .bg,.fg,.item{
+    display: block;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 5px;
+    height: 5px;
+  }
+  .bg{
+    width: @bgw;
+    background: @bgc;
+  }
+  .fg{
+    background: @fgc;
+    width: @fgw;
+  }
+  .item{
+    width: 10px;
+    height: 10px;
+    background: @ic;
+    border-radius: 50%;
+    left: @il;
+  }
+}

@@ -10,7 +10,7 @@
         <nav class="menu">
           <ul class="list">
             <li :class="{active: $route.path === '/main'}">
-              <a href="javascript:;" @click="$router.push('/')">首页</a>
+              <a href="javascript:;" @click="$router.push({ path: '/', query: { id: new Date().getTime() } })">首页</a>
             </li>
             <li :class="{active: $route.path === '/main/music'}">
               <a href="javascript:;" @click="$router.push('/main/music')">歌单</a>
@@ -38,15 +38,15 @@
       </div>
     </div>
     <el-container>
-      <el-aside width="200px">Aside</el-aside>
+      <el-aside width="150px">Aside</el-aside>
       <el-main>
         <div v-if="this.$route.path === '/main'" class="index">
-            <div class="banner">
+            <div class="banner" v-if="indexBanner.banners">
                 <div class="swiper-container">
                   <div class="swiper-wrapper">
                       <div class="swiper-slide" v-for="(item, index) in indexBanner.banners" :key="index">
                         <a href="javascript:;">
-                          <img :src="item.imageUrl" alt="">
+                          <img :src="item.imageUrl+'?param=1200y400'" alt="">
                         </a>
                       </div>
                   </div>
@@ -56,7 +56,7 @@
                 </div>
             </div>
             <!-- 推荐歌单 -->
-            <div class="content">
+            <div class="content" ref="content">
               <el-row :gutter="5">
                  <el-col :span="8">
                    <el-card :body-style="cardStyle">
@@ -65,7 +65,7 @@
                        <div class="item" v-for="(item, index) in personalizedMv" :key="index">
                          <el-image
                               lazy
-                              :src="item.picUrl"
+                              :src="item.picUrl+'?param=50y50'"
                               fit="fill">
                           </el-image>
                          <div class="text"><a href="">{{item.copywriter}}</a></div>
@@ -80,7 +80,7 @@
                        <div class="item" v-for="(item, index) in personalized" :key="index">
                          <el-image
                               lazy
-                              :src="item.picUrl"
+                              :src="item.picUrl+'?param=50y50'"
                               fit="fill">
                           </el-image>
                          <div class="text"><a href="">{{item.name}}</a></div>
@@ -106,17 +106,24 @@
                </el-row>
             </div>
         </div>
-        <router-view></router-view>
+        <router-view v-if="isRouterAlive"></router-view>
       </el-main>
     </el-container>
+    <MusicController/>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+import MusicController from '../Music/MusicController'
 import Swiper from 'swiper'
 import 'swiper/css/swiper.min.css'
 import { mapState } from 'vuex'
 export default {
+  provide () {
+    return {
+      reload: this.reload
+    }
+  },
   data () {
     return {
       keywords: '',
@@ -132,7 +139,8 @@ export default {
       personalizedMv: [],
       // 推荐歌单
       personalized: [],
-      personalizedNewsong: []
+      personalizedNewsong: [],
+      isRouterAlive: true
     }
   },
   created () {
@@ -143,23 +151,25 @@ export default {
     this.getPersonalizedNewsong()
   },
   mounted () {
-    this.$nextTick(() => {
-      /* eslint-disable no-new */
-      new Swiper('.swiper-container', {
-        speed: 1000,
-        autoplay: {
-          disableOnInteraction: false
-        },
-        loop: true,
-        pagination: {
-          el: '.swiper-pagination'
-        },
-        navigation: {
-          nextEl: '.swiper-button-next',
-          prevEl: '.swiper-button-prev'
-        }
+    setTimeout(() => {
+      this.$nextTick(() => {
+        /* eslint-disable no-new */
+        new Swiper('.swiper-container', {
+          speed: 1000,
+          autoplay: {
+            disableOnInteraction: false
+          },
+          loop: true,
+          pagination: {
+            el: '.swiper-pagination'
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev'
+          }
+        })
       })
-    })
+    }, 500)
   },
   methods: {
     async getPersonalizedMv () {
@@ -184,7 +194,8 @@ export default {
     gotoMusicList () {
       let keywords = this.keywords
       if (this.keywords) {
-        this.$router.push({ path: '/main/musiclist', query: { keywords } })
+        let time = new Date().getTime()
+        this.$router.push({ path: '/main/musiclist', query: { keywords, time } })
       } else {
         this.$message.warning({
           showClose: true,
@@ -192,10 +203,19 @@ export default {
           type: 'wraning'
         })
       }
+    },
+    reload () {
+      this.isRouterAlive = false
+      this.$nextTick(function () {
+        this.isRouterAlive = true
+      })
     }
   },
   computed: {
     ...mapState(['indexBanner'])
+  },
+  components: {
+    MusicController
   }
 }
 
@@ -215,7 +235,7 @@ export default {
 .el-main {
   background-color: #e24343;
   overflow: hidden;
-  padding: 70px 0 0 0;
+  padding: 70px 0;
 }
 .head {
     position: absolute;
@@ -223,8 +243,8 @@ export default {
     width: 100%;
     background: #383838;
     .content{
-      height: 100%;
       padding: 0px 50px;
+      height: 100%;
       // logo
       .logo{
         float: left;
@@ -377,16 +397,21 @@ export default {
 // 首页
 .index {
   height: 100%;
+  width: 100%;
   margin-top: 5px;
+  position: relative;
    .banner {
      margin: 0 auto;
+     height: 45%;
      .swiper-container {
-       width: 1000px;
-       height: 300px;
+       width: 80%;
+       height: 100%;
        box-shadow: 2px 2px 2px gray;
+       position: relative;
        .swiper-slide  img {
-         width: 1000px;
-         height: 300px;
+         position: absolute;
+         width: 100%;
+         height: 100%;
        }
        .swiper-button-prev {
          color: red;
@@ -404,13 +429,13 @@ export default {
    }
    .content {
      width: 100%;
-     height: 100%;
+     height: 55%;
      .el-row {
        height: 100%;
        .el-col {
          height: 100%;
          .el-card {
-           height: 300px;
+           height: 100%;
            margin: 5px;
            border-radius: 10px;
            .itemContent {

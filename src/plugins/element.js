@@ -12,7 +12,9 @@ import {
   Table,
   TableColumn,
   Image,
-  Message
+  Message,
+  Popover,
+  Tooltip
 } from 'element-ui'
 
 Vue.use(Button)
@@ -27,4 +29,6 @@ Vue.use(Card)
 Vue.use(Table)
 Vue.use(TableColumn)
 Vue.use(Image)
+Vue.use(Popover)
+Vue.use(Tooltip)
 Vue.prototype.$message = Message
