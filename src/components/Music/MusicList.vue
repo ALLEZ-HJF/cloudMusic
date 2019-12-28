@@ -25,39 +25,8 @@
     </div>
     <div :class="['tableList', { 'keyword': keywords }]">
       <el-card :body-style="{height: '100%',padding: '0'}">
-        <!-- 歌单歌曲列表 -->
-        <el-table v-if="!keywords" :data="playListInfo.tracks" lazy border style="width: 100%" max-height="400px" highlight-current-row @expand-change="expandChange" @row-dblclick="playMusic">
-          <el-table-column type="index"></el-table-column>
-          <el-table-column type="expand">
-            <template slot-scope="scope">
-              <div class="mvContainer" v-if="scope.row.mv">
-                <video class="mvVideo" controls :src="videoUrl"></video>
-              </div>
-               <p v-else>该歌曲暂无mv视频,了解歌手信息请点击歌手姓名</p>
-            </template>
-          </el-table-column>
-          <el-table-column prop="ar[0].name"  label="歌手" width="180"></el-table-column>
-          <el-table-column label="歌名">
-            <template slot-scope="scope">
-              {{scope.row.name}}
-              <span class="el-icon-video-camera" v-if="scope.row.mv"></span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="al.name"  label="专辑"></el-table-column>
-          <el-table-column label="时间">
-            <template slot-scope="scope">
-              {{scope.row.dt | toMinSecFormat}}
-            </template>
-          </el-table-column>
-          <el-table-column label="操作">
-          <template>
-            <span class="el-icon-download"></span>
-            <span class="el-icon-star-off"></span>
-          </template>
-          </el-table-column>
-        </el-table>
         <!-- 搜索歌曲列表 -->
-        <el-table :data="musicListData" lazy border style="width: 100%" max-height="600px" highlight-current-row @expand-change="expandChange" @row-dblclick="playMusic">
+        <el-table v-if="keywords" :data="musicListData" lazy border style="width: 100%" max-height="600px" highlight-current-row @expand-change="expandChange" @row-dblclick="playMusic">
           <el-table-column type="index"></el-table-column>
           <el-table-column type="expand">
             <template slot-scope="scope">
@@ -87,6 +56,39 @@
             </template>
           </el-table-column>
         </el-table>
+        <div v-if="!keywords">
+          <!-- 歌单歌曲列表 -->
+        <el-table :data="playListInfo.tracks" lazy border style="width: 100%;max-height: 400px;overflow: auto"  highlight-current-row @expand-change="expandChange" @row-dblclick="playMusic">
+          <el-table-column type="index"></el-table-column>
+          <el-table-column type="expand">
+            <template slot-scope="scope">
+              <div class="mvContainer" v-if="scope.row.mv">
+                <video class="mvVideo" controls :src="videoUrl"></video>
+              </div>
+               <p v-else>该歌曲暂无mv视频,了解歌手信息请点击歌手姓名</p>
+            </template>
+          </el-table-column>
+          <el-table-column prop="ar[0].name"  label="歌手" width="180"></el-table-column>
+          <el-table-column label="歌名">
+            <template slot-scope="scope">
+              {{scope.row.name}}
+              <span class="el-icon-video-camera" v-if="scope.row.mv"></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="al.name"  label="专辑"></el-table-column>
+          <el-table-column label="时间">
+            <template slot-scope="scope">
+              {{scope.row.dt | toMinSecFormat}}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作">
+          <template>
+            <span class="el-icon-download"></span>
+            <span class="el-icon-star-off"></span>
+          </template>
+          </el-table-column>
+        </el-table>
+        </div>
       </el-card>
     </div>
   </div>

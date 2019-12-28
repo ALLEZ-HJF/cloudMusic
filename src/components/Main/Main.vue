@@ -10,16 +10,16 @@
         <nav class="menu">
           <ul class="list">
             <li :class="{active: $route.path === '/main'}">
-              <a href="javascript:;" @click="$router.push({ path: '/', query: { id: new Date().getTime() } })">首页</a>
+              <a href="javascript:;" @click="$router.push({ path: '/', query: { time: new Date().getTime() } })">首页</a>
             </li>
             <li :class="{active: $route.path === '/main/music'}">
-              <a href="javascript:;" @click="$router.push('/main/music')">歌单</a>
+              <a href="javascript:;" @click="$router.push({ path: '/main/music', query: { time: new Date().getTime() } })">歌单</a>
             </li>
             <li :class="{active: $route.path === '/main/order'}">
               <a href="javascript:;" @click="$message.info('暂未开发,过段时间再来吧或许不开发了,谢谢捧场!')">排行榜</a>
             </li>
-            <li :class="{active: $route.path === '/main/video'}">
-              <a href="javascript:;" @click="$router.push('/main/video')">视频</a>
+            <li :class="{active: $route.path === '/main/mv'}">
+              <a href="javascript:;" @click="$router.push({ path:'/main/mv', query: { time: new Date().getTime() }})">MV</a>
             </li>
             <li :class="{active: $route.path === '/main/fm'}">
               <a href="javascript:;" @click="$message.info('暂未开发,过段时间再来吧或许不开发了,谢谢捧场!')">电台</a>
@@ -62,13 +62,13 @@
                    <el-card :body-style="cardStyle">
                      <span class="title">推荐mv</span>
                      <div class="itemContent">
-                       <div class="item" v-for="(item, index) in personalizedMv" :key="index">
+                       <div class="item" v-for="(item, index) in personalizedMv" :key="index" @click="playMv(item)">
                          <el-image
                               lazy
                               :src="item.picUrl+'?param=100y100'"
                               fit="fill">
                           </el-image>
-                         <div class="text"><a href="">{{item.copywriter}}</a></div>
+                         <div class="text"><a href="javascript:;">{{item.copywriter}}</a></div>
                        </div>
                      </div>
                    </el-card>
@@ -77,13 +77,13 @@
                    <el-card :body-style="cardStyle">
                       <span class="title">推荐歌单</span>
                       <div class="itemContent">
-                       <div class="item" v-for="(item, index) in personalized" :key="index">
+                       <div class="item" v-for="(item, index) in personalized" :key="index" @click="gotoPlayList(item)">
                          <el-image
                               lazy
                               :src="item.picUrl+'?param=100y100'"
                               fit="fill">
                           </el-image>
-                         <div class="text"><a href="">{{item.name}}</a></div>
+                         <div class="text"><a href="javascript:;">{{item.name}}</a></div>
                        </div>
                      </div>
                    </el-card>
@@ -92,13 +92,13 @@
                    <el-card :body-style="cardStyle">
                      <span class="title">推荐新音乐</span>
                      <div class="itemContent">
-                       <div class="item" v-for="(item, index) in personalizedNewsong" :key="index">
+                       <div class="item" v-for="(item, index) in personalizedNewsong" :key="index" @click="gotoPlayList(item,true)">
                          <el-image
                               lazy
                               :src="item.picUrl+'?param=100y100'"
                               fit="fill">
                           </el-image>
-                         <div class="text"><a href="">{{item.name}}</a></div>
+                         <div class="text"><a href="javascript:;">{{item.name}}</a></div>
                        </div>
                      </div>
                    </el-card>
@@ -110,6 +110,12 @@
       </el-main>
     </el-container>
     <MusicController/>
+    <el-dialog
+    title="播放mv"
+    :visible.sync="dialogVisible"
+    width="50%" @close="mvDialogClose">
+    <video :src="this.videoInfo.url" ref="myVideo" controls></video>
+  </el-dialog>
   </div>
 </template>
 
@@ -140,7 +146,11 @@ export default {
       // 推荐歌单
       personalized: [],
       personalizedNewsong: [],
-      isRouterAlive: true
+      isRouterAlive: true,
+      dialogVisible: false,
+      videoInfo: {
+        url: ''
+      }
     }
   },
   created () {
@@ -209,6 +219,46 @@ export default {
       this.$nextTick(function () {
         this.isRouterAlive = true
       })
+    },
+    // 播放mv
+    async playMv (item) {
+      // 根据id获取mv详细信息
+      const { data: res } = await this.$http.get(`/mv/detail?mvid=${item.id}`)
+      if (res.code !== 200) {
+        return this.$message.error('获取mv视频数据失败,请重新')
+      }
+      let arrObj = res.data.brs
+      let url = ''
+      for (const key in arrObj) {
+        if (arrObj.hasOwnProperty(key)) {
+          if (key === '480') {
+            url = arrObj[key]
+            break
+          } else {
+            url = arrObj[key]
+          }
+        }
+      }
+      this.videoInfo.url = url
+      this.dialogVisible = true
+    },
+    // 关闭dialog
+    mvDialogClose () {
+      if (!this.$refs.myVideo.paused) {
+        this.$refs.myVideo.pause()
+      }
+      this.dialogVisible = false
+    },
+    gotoPlayList (item, type) {
+      if (!type) {
+        this.$router.push({ path: '/main/musiclist',
+          query: { id: item.id }
+        })
+      } else {
+        this.$router.push({ path: '/main/musiclist',
+          query: { keywords: item.name }
+        })
+      }
     }
   },
   computed: {
@@ -447,6 +497,7 @@ export default {
                height: 80px;
                padding: 0px 5px;
                border-top: 1px solid #ddd;
+               cursor: pointer;
                .el-image {
                  float: left;
                  width: 30%;

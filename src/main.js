@@ -14,7 +14,10 @@ Vue.prototype.$http = axios
 Vue.filter('toMinSecFormat', function (originVal) {
   // 252757
   let minutes = Math.floor((originVal / 1000) / 60)
-  let seconds = Math.floor((originVal % (1000 * 60)) / 1000)
+  let seconds = Math.ceil((originVal % (1000 * 60)) / 1000)
+  if (seconds < 10) {
+    seconds = '0' + seconds
+  }
   return `${minutes}:${seconds}`
 })
 Vue.filter('dateFormat', function (originVal) {

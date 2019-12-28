@@ -37,3 +37,26 @@ a {
 ul {
   list-style: none;
 }
+
+/*左侧菜单栏滚动条样式*/
+::-webkit-scrollbar{
+  width:6px;
+  height:6px;
+}
+::-webkit-scrollbar-track{
+  background: rgb(248, 76, 76);
+  border-radius:8px;
+}
+::-webkit-scrollbar-track-piece{/*内层轨道，滚动条中间部分（位置4）*/
+  border-radius: 2px 2px 0px 0px;
+}
+::-webkit-scrollbar-thumb{
+  background: rgb(255, 255, 255);
+  border-radius:6px;
+}
+::-webkit-scrollbar-thumb:hover{
+  background: rgb(255, 255, 255);
+}
+::-webkit-scrollbar-corner{
+  background: #f6f6f6;
+}

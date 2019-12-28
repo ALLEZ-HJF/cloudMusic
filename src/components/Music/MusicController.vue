@@ -1,13 +1,13 @@
 <template>
   <div class="controllerContainer" >
     <el-row :gutter="10">
-      <el-col :span="9">
+      <el-col :span="8">
         <div class="controller">
           <div class="songImg" v-if="audioInfo.al">
             <img :src="audioInfo.al.picUrl+'?param=100y100'" alt="">
           </div>
           <div class="audioInfo" v-if="audioInfo.al">
-             <p>{{audioInfo.name}}</p>
+             <div>{{audioInfo.name}}</div>
             歌手:&nbsp;<span>{{audioInfo.ar[0].name}}</span>
           </div>
           <div class="icon">
@@ -20,13 +20,13 @@
           </div>
         </div>
       </el-col>
-      <el-col :span="9">
+      <el-col :span="10">
         <div class="time">
-          <span class="nowTime">当前播放时间:{{nowTime}}</span>
+          <span class="nowTime">当前播放时间:{{nowTime | formatNowTime}}</span>
           <div class="timeSlide">
             <span class="bg"></span>
-            <span class="fg"></span>
-            <span class="item"></span>
+            <span class="fg" ref="fg" :style="{ width: fgWidth + 'px' }"></span>
+            <span class="item" ref="item" :style="{ left: itemLeft + 'px'}"></span>
           </div>
           <span class="totalTime" v-if="audioInfo.dt">总时间:{{audioInfo.dt | toMinSecFormat}}</span>
         </div>
@@ -58,7 +58,9 @@ export default {
       },
       nowTime: 0,
       timer: '',
-      isEnd: false
+      isEnd: false,
+      fgWidth: 0, // 前景色宽度
+      itemLeft: -5 // 滑块位置
     }
   },
   created () {
@@ -72,7 +74,10 @@ export default {
     // 双击时播放执行函数
     playMusic (urlData) {
       this.myAudio.url = urlData.url
-      this.myAudio.duration = urlData.dt
+      // 先获取一秒钟走多少px  先把歌曲的毫秒转化成秒
+      // 获取歌曲详情
+      let time = (this.audioInfo.dt / 1000)
+      let s = 300 / time
       this.$nextTick(() => {
         this.$refs.myAudio.play()
         if (this.timer) {
@@ -83,6 +88,8 @@ export default {
         }
         this.timer = setInterval(() => {
           this.nowTime = this.nowTime + 1
+          this.fgWidth = this.fgWidth + s
+          this.itemLeft = this.itemLeft + s
         }, 1000)
       })
       if (!this.isPlay) {
@@ -117,6 +124,16 @@ export default {
         this.myAudio.isEnd = true
         this.stopOrPlay(false)
       }
+    }
+  },
+  filters: {
+    formatNowTime: function (value) {
+      let m = Math.floor(value / 60)
+      let s = value % 60
+      if (s < 10) {
+        s = '0' + s
+      }
+      return `${m}:${s}`
     }
   },
   watch: {
@@ -164,15 +181,19 @@ export default {
         }
         .audioInfo {
           font-size: 14px;
-          p {
+          div {
             margin: 5px 0;
-            font-size: 18px;
+            width: 140px;
+            font-size: 14px;
             font-weight: bold;
             color: red;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
           }
           span {
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
           }
         }
         .icon {
@@ -205,7 +226,7 @@ export default {
           height: 30px;
           position: relative;
           margin: 0 20px;
-          .itemSlide(300px,150px)
+          .itemSlide(300px,0px,0px)
         }
         .totalTime {
           float: left;
@@ -226,7 +247,7 @@ export default {
           height: 30px;
           margin-left: 30px;
           position: relative;
-          .itemSlide(150px,75px,75px)
+          .itemSlide(150px,150px,150px)
         }
       }
     }

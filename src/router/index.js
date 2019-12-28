@@ -3,7 +3,8 @@ import VueRouter from 'vue-router'
 import Main from '../components/Main/Main'
 import Music from '../views/music/Music'
 import MusicList from '../components/Music/MusicList'
-import Video from '../views/video/Video'
+import Mv from '../views/mv/Mv'
+import MvList from '../components/MV/MvList'
 Vue.use(VueRouter)
 
 const routes = [
@@ -24,8 +25,13 @@ const routes = [
         component: MusicList
       },
       {
-        path: '/main/video',
-        component: Video
+        path: '/main/mv',
+        component: Mv
+      },
+      {
+        name: 'mvlist',
+        path: '/main/mvlist',
+        component: MvList
       }
     ]
   }

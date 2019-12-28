@@ -14,7 +14,8 @@ import {
   Image,
   Message,
   Popover,
-  Tooltip
+  Tooltip,
+  Dialog
 } from 'element-ui'
 
 Vue.use(Button)
@@ -31,4 +32,5 @@ Vue.use(TableColumn)
 Vue.use(Image)
 Vue.use(Popover)
 Vue.use(Tooltip)
+Vue.use(Dialog)
 Vue.prototype.$message = Message
