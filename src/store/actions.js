@@ -1,5 +1,7 @@
 import {
-  RECEIVE_INDEXBANNER
+  RECEIVE_INDEXBANNER,
+  SAVE_AUDIOINFO,
+  SAVE_AUDIOURL
 } from './mutation-type'
 import {
   reqIndexBanner
@@ -9,5 +11,11 @@ export default {
   async getIndexBanner ({ commit }) {
     const result = await reqIndexBanner()
     commit(RECEIVE_INDEXBANNER, { indexBanner: result })
+  },
+  saveAudioInfo ({ commit }, audioInfo) {
+    commit(SAVE_AUDIOINFO, { audioInfo })
+  },
+  saveAudioUrl ({ commit }, audioUrl) {
+    commit(SAVE_AUDIOURL, { audioUrl })
   }
 }

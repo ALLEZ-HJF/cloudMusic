@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import Main from '../components/Main/Main'
 import Music from '../views/music/Music'
 import MusicList from '../components/Music/MusicList'
+import Video from '../views/video/Video'
 Vue.use(VueRouter)
 
 const routes = [
@@ -21,6 +22,10 @@ const routes = [
       {
         path: '/main/musiclist',
         component: MusicList
+      },
+      {
+        path: '/main/video',
+        component: Video
       }
     ]
   }

@@ -15,7 +15,7 @@
           <div class="creatUserInfo" v-if="this.playListInfo.creator">
             <img :src="this.playListInfo.creator.avatarUrl+'?param=50y50'" alt="">
             <span>{{this.playListInfo.creator.nickname}}</span>
-            <span>创建于{{this.playListInfo.createTime}}</span>
+            <span>创建于{{this.playListInfo.createTime | dateFormat}}</span>
           </div>
           <div class="desc">
             {{this.playListInfo.description}}
@@ -24,36 +24,9 @@
       </div>
     </div>
     <div :class="['tableList', { 'keyword': keywords }]">
-      <el-card :body-style="{height: '100%'}">
-        <!-- 搜索歌曲列表 -->
-        <el-table v-if="keywords" :data="musicListData" lazy border style="width: 100%" max-height="350px" highlight-current-row @expand-change="expandChange" @row-dblclick="playMusic">
-          <el-table-column type="index"></el-table-column>
-          <el-table-column type="expand">
-            <template slot-scope="scope">
-              <div class="mvContainer" v-if="scope.row.mvid">
-               <video class="mvVideo" controls :src="videoUrl"></video>
-              </div>
-              <p v-else>该歌曲暂无mv视频,了解歌手信息请点击歌手姓名</p>
-            </template>
-          </el-table-column>
-          <el-table-column prop="artists[0].name" label="歌手" width="180"></el-table-column>
-          <el-table-column prop="name" label="歌曲名" width="180">
-            <template slot-scope="scope">
-              <span>{{scope.row.name}}</span>
-              <span class="el-icon-video-camera" v-if="scope.row.mvid" ></span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="album.name" label="专辑"></el-table-column>
-          <el-table-column prop="duration" label="时间"></el-table-column>
-          <el-table-column label="操作">
-            <template>
-              <span class="el-icon-download"></span>
-              <span class="el-icon-star-off"></span>
-            </template>
-          </el-table-column>
-        </el-table>
+      <el-card :body-style="{height: '100%',padding: '0'}">
         <!-- 歌单歌曲列表 -->
-        <el-table v-if="!keywords" :data="playListInfo.tracks" lazy border style="width: 100%" max-height="350px" highlight-current-row @expand-change="expandChange" @row-dblclick="playMusic">
+        <el-table v-if="!keywords" :data="playListInfo.tracks" lazy border style="width: 100%" max-height="400px" highlight-current-row @expand-change="expandChange" @row-dblclick="playMusic">
           <el-table-column type="index"></el-table-column>
           <el-table-column type="expand">
             <template slot-scope="scope">
@@ -71,12 +44,47 @@
             </template>
           </el-table-column>
           <el-table-column prop="al.name"  label="专辑"></el-table-column>
-          <el-table-column prop="dt" label="时间"></el-table-column>
+          <el-table-column label="时间">
+            <template slot-scope="scope">
+              {{scope.row.dt | toMinSecFormat}}
+            </template>
+          </el-table-column>
           <el-table-column label="操作">
           <template>
             <span class="el-icon-download"></span>
             <span class="el-icon-star-off"></span>
           </template>
+          </el-table-column>
+        </el-table>
+        <!-- 搜索歌曲列表 -->
+        <el-table :data="musicListData" lazy border style="width: 100%" max-height="600px" highlight-current-row @expand-change="expandChange" @row-dblclick="playMusic">
+          <el-table-column type="index"></el-table-column>
+          <el-table-column type="expand">
+            <template slot-scope="scope">
+              <div class="mvContainer" v-if="scope.row.mvid">
+               <video class="mvVideo" controls :src="videoUrl"></video>
+              </div>
+              <p v-else>该歌曲暂无mv视频,了解歌手信息请点击歌手姓名</p>
+            </template>
+          </el-table-column>
+          <el-table-column prop="artists[0].name" label="歌手" width="180"></el-table-column>
+          <el-table-column prop="name" label="歌曲名" width="180">
+            <template slot-scope="scope">
+              <span>{{scope.row.name}}</span>
+              <span class="el-icon-video-camera" v-if="scope.row.mvid" ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="album.name" label="专辑"></el-table-column>
+          <el-table-column label="时间">
+            <template slot-scope="scope">
+              {{scope.row.duration | toMinSecFormat}}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作">
+            <template>
+              <span class="el-icon-download"></span>
+              <span class="el-icon-star-off"></span>
+            </template>
           </el-table-column>
         </el-table>
       </el-card>
@@ -106,6 +114,7 @@ export default {
     }
   },
   methods: {
+    // 根据关键字查询歌曲
     async getSearchSong (keywords) {
       let time = new Date().getTime()
       const result = await this.$http.get('/search', { params: { keywords, time } })
@@ -115,6 +124,7 @@ export default {
         this.musicListData = result.data.result.songs
       }
     },
+    // 根据id查询播放列表信息
     async getPlayListInfoById (id) {
       const result = await this.$http.get('/playlist/detail', { params: { id } })
       if (result.status !== 200) {
@@ -122,14 +132,22 @@ export default {
       }
       this.playListInfo = result.data.playlist
     },
-    async playMusic (id) {
-      const { data: res } = await this.$http.get('/song/url', { params: { id: id.id } })
+    // 播放音乐
+    async playMusic (row) {
+      const { data: res } = await this.$http.get('/song/url', { params: { id: row.id } })
       if (res.code !== 200) {
         return this.$message.error('播放歌曲失败请重试')
       }
-      let audio = new Audio(res.data[0].url)
-      audio.play()
-      console.log(id)
+      // 使用vuex存储音频数据,把音频信息传递到音乐播放控制组件
+      this.$store.dispatch('saveAudioUrl', res.data[0])
+      // 判断是关键字搜索的行数据还是歌单数据 需统一格式数据显示在音乐控制面版
+      if (row.artists) {
+        let ids = row.id
+        const { data: res } = await this.$http.get('/song/detail', { params: { ids } })
+        this.$store.dispatch('saveAudioInfo', res.songs[0])
+        return false
+      }
+      this.$store.dispatch('saveAudioInfo', row)
     },
     // 列表展开时触发
     async expandChange (row) {
@@ -149,7 +167,6 @@ export default {
         for (const key in obj) {
           arr.push(obj[key])
         }
-        console.log(arr)
         if (arr.length >= 2) {
           this.videoUrl = arr[1]
         } else {
@@ -233,6 +250,8 @@ export default {
         .desc {
           margin-left: 20px;
           font-size: 14px;
+          height: 80px;
+          overflow: auto;
         }
       }
     }

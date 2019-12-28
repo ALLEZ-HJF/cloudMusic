@@ -23,6 +23,9 @@
          <a href="javascript:;" @click="gotoMusicList(item)">
           <el-image :src="item.coverImgUrl+'?param=230y200'" lazy>
           </el-image>
+          <div class="mask">
+            <svg t="1577420878542" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1133" width="200" height="200"><path d="M512 0A512 512 0 1 0 1024 512 512.589353 512.589353 0 0 0 512 0z m223.953957 535.574101l-294.676259 221.007194a29.467626 29.467626 0 0 1-17.680576 5.893525 29.467626 29.467626 0 0 1-29.467626-29.467626v-442.014388a29.467626 29.467626 0 0 1 47.148202-23.574101l294.676259 221.007194a29.467626 29.467626 0 0 1 0 47.148202z" fill="#333333" p-id="1134"></path></svg>
+          </div>
          </a>
           <div class="userInfo">
             <span class="el-icon-user-solid"></span>
@@ -101,6 +104,37 @@ export default {
       background: rgba(255, 255, 255, .9);
       box-shadow: 0 0px 5px gray;
       font-size: 14px;
+      position: relative;
+      &:hover .mask{
+        background: black;
+        bottom: 70px;
+        opacity: .3;
+        svg {
+          position: absolute;
+          display: block;
+          width: 50px;
+          height: 50px;
+          left: 50%;
+          top: 50%;
+          margin-left: -25px;
+          margin-top: -25px;
+          transform: scale(1.5);
+          transition: 1s;
+        }
+      }
+      .mask {
+        position: absolute;
+        width: 100%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 270px;
+        transition: bottom 1s;
+        svg {
+          width: 0;
+          height: 0;
+        }
+      }
       .el-image {
         border-radius: 5px 5px 0 0;
       }

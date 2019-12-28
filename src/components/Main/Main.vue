@@ -16,13 +16,13 @@
               <a href="javascript:;" @click="$router.push('/main/music')">歌单</a>
             </li>
             <li :class="{active: $route.path === '/main/order'}">
-              <a href="javascript:;" @click="$router.push('/main/order')">排行榜</a>
+              <a href="javascript:;" @click="$message.info('暂未开发,过段时间再来吧或许不开发了,谢谢捧场!')">排行榜</a>
             </li>
             <li :class="{active: $route.path === '/main/video'}">
               <a href="javascript:;" @click="$router.push('/main/video')">视频</a>
             </li>
             <li :class="{active: $route.path === '/main/fm'}">
-              <a href="javascript:;" @click="$router.push('/main/fm')">电台</a>
+              <a href="javascript:;" @click="$message.info('暂未开发,过段时间再来吧或许不开发了,谢谢捧场!')">电台</a>
             </li>
           </ul>
         </nav>
@@ -65,7 +65,7 @@
                        <div class="item" v-for="(item, index) in personalizedMv" :key="index">
                          <el-image
                               lazy
-                              :src="item.picUrl+'?param=50y50'"
+                              :src="item.picUrl+'?param=100y100'"
                               fit="fill">
                           </el-image>
                          <div class="text"><a href="">{{item.copywriter}}</a></div>
@@ -80,7 +80,7 @@
                        <div class="item" v-for="(item, index) in personalized" :key="index">
                          <el-image
                               lazy
-                              :src="item.picUrl+'?param=50y50'"
+                              :src="item.picUrl+'?param=100y100'"
                               fit="fill">
                           </el-image>
                          <div class="text"><a href="">{{item.name}}</a></div>
@@ -95,7 +95,7 @@
                        <div class="item" v-for="(item, index) in personalizedNewsong" :key="index">
                          <el-image
                               lazy
-                              :src="item.picUrl"
+                              :src="item.picUrl+'?param=100y100'"
                               fit="fill">
                           </el-image>
                          <div class="text"><a href="">{{item.name}}</a></div>
@@ -465,9 +465,8 @@ export default {
                  text-align: center;
                  a{
                    margin-top: 20px;
-                   color: rgb(235, 0, 0);
-                   font-weight: bold;
-                   font-size: 14px;
+                   color: black;
+                   font-size: 12px;
                  }
                }
              }
