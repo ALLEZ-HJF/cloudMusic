@@ -21,12 +21,12 @@
         </div>
       </el-col>
       <el-col :span="10">
-        <div class="time">
+        <div class="time" ref="time">
           <span class="nowTime">当前播放时间:{{nowTime | formatNowTime}}</span>
-          <div class="timeSlide">
-            <span class="bg"></span>
+          <div class="timeSlide" ref="slide">
             <span class="fg" ref="fg" :style="{ width: fgWidth + 'px' }"></span>
             <span class="item" ref="item" :style="{ left: itemLeft + 'px'}"></span>
+            <span class="bg" ref="bg"></span>
           </div>
           <span class="totalTime" v-if="audioInfo.dt">总时间:{{audioInfo.dt | toMinSecFormat}}</span>
         </div>
@@ -60,12 +60,58 @@ export default {
       timer: '',
       isEnd: false,
       fgWidth: 0, // 前景色宽度
-      itemLeft: -5 // 滑块位置
+      itemLeft: -5, // 滑块位置
+      s: 0
     }
   },
   created () {
   },
   mounted () {
+    // 布局原因无法获取小圆点的offsetleft
+    let startX = 0
+    let mouseStartX = 0
+    this.$refs.item.onmousedown = (ev) => {
+      ev = ev || event
+      startX = this.$refs.item.offsetLeft
+      mouseStartX = ev.pageX
+      if (this.myAudio.url) {
+        this.stopOrPlay(false)
+      }
+      this.$refs.slide.onmousemove = (ev) => {
+        ev = ev || event
+        if (this.fgWidth >= 0 && this.fgWidth <= 300) {
+          this.fgWidth = ev.pageX - mouseStartX + startX + 5
+        } else {
+          if (this.fgWidth > 300) {
+            this.fgWidth = 300
+          }
+          if (this.fgWidth < 0) {
+            this.fgWidth = 0
+          }
+        }
+        if (this.itemLeft >= -5 && this.itemLeft <= 295) {
+          this.itemLeft = ev.pageX - mouseStartX + startX
+        } else {
+          if (this.itemLeft > 295) {
+            this.itemLeft = 295
+          }
+          if (this.itemLeft < -5) {
+            this.itemLeft = -5
+          }
+        }
+      }
+      this.$refs.slide.onmouseup = (ev) => {
+        ev = ev || event
+        if (this.myAudio.url) {
+          this.stopOrPlay(true)
+          let time = this.fgWidth / 300 // 0 - 1
+          this.$refs.myAudio.currentTime = this.$refs.myAudio.duration * time
+          this.nowTime = Math.floor(this.$refs.myAudio.duration * time)
+        }
+        this.$refs.slide.onmousemove = null
+        this.$refs.slide.onmouseup = null
+      }
+    }
   },
   computed: {
     ...mapState(['audioInfo', 'audioUrl'])
@@ -73,23 +119,26 @@ export default {
   methods: {
     // 双击时播放执行函数
     playMusic (urlData) {
+      // 播放歌曲时先判断上一首的定时器是否已经关闭
+      if (this.timer) {
+        clearInterval(this.timer)
+      }
       this.myAudio.url = urlData.url
       // 先获取一秒钟走多少px  先把歌曲的毫秒转化成秒
       // 获取歌曲详情
-      let time = (this.audioInfo.dt / 1000)
-      let s = 300 / time
+      this.fgWidth = 0
+      this.itemLeft = -5
       this.$nextTick(() => {
         this.$refs.myAudio.play()
         if (this.timer) {
           clearInterval(this.timer)
           this.timer = ''
           this.nowTime = 0
-          this.nowTime = 0
         }
         this.timer = setInterval(() => {
           this.nowTime = this.nowTime + 1
-          this.fgWidth = this.fgWidth + s
-          this.itemLeft = this.itemLeft + s
+          this.fgWidth = this.fgWidth + this.s
+          this.itemLeft = this.itemLeft + this.s
         }, 1000)
       })
       if (!this.isPlay) {
@@ -112,6 +161,8 @@ export default {
           })
           this.timer = setInterval(() => {
             this.nowTime = this.nowTime + 1
+            this.fgWidth = this.fgWidth + this.s
+            this.itemLeft = this.itemLeft + this.s
           }, 1000)
         }
       }
@@ -138,6 +189,8 @@ export default {
   },
   watch: {
     audioInfo (newVal) {
+      let time = (newVal.dt / 1000)
+      this.s = 300 / time
     },
     audioUrl (newVal) {
       this.playMusic(newVal)
@@ -217,18 +270,20 @@ export default {
         transform: translateY(-50%);
         height: 30px;
         line-height: 30px;
+        font-size: 14px;
         .nowTime {
           float: left;
+          margin-right: 20px;
         }
         .timeSlide {
           float: left;
           width: 300px;
           height: 30px;
           position: relative;
-          margin: 0 20px;
           .itemSlide(300px,0px,0px)
         }
         .totalTime {
+          margin-left: 20px;
           float: left;
         }
       }

@@ -27,7 +27,7 @@
           </ul>
         </nav>
         <div class="login">
-          <a href="javascript:;">
+          <a href="javascript:;" @click="$message.info('暂未开发')">
             登录
           </a>
         </div>
