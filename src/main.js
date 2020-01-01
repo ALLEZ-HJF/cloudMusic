@@ -1,3 +1,4 @@
+import 'babel-polyfill'
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
@@ -7,7 +8,7 @@ import './assets/font/iconfont.css'
 import './plugins/element.js'
 import store from './store'
 import axios from 'axios'
-axios.defaults.baseURL = 'http://47.101.156.167:3000'
+axios.defaults.baseURL = 'http://127.0.0.1:3000'
 
 Vue.prototype.$http = axios
 // 毫秒转化为分秒

@@ -24,8 +24,8 @@
         <div class="time" ref="time">
           <span class="nowTime">当前播放时间:{{nowTime | formatNowTime}}</span>
           <div class="timeSlide" ref="slide">
-            <span class="fg" ref="fg" :style="{ width: fgWidth + 'px' }"></span>
-            <span class="item" ref="item" :style="{ left: itemLeft + 'px'}"></span>
+            <span class="fg" ref="fg" :style="{ width: timeFgWidth + 'px' }"></span>
+            <span class="item" ref="item" :style="{ left: timeItemLeft + 'px'}"></span>
             <span class="bg" ref="bg"></span>
           </div>
           <span class="totalTime" v-if="audioInfo.dt">总时间:{{audioInfo.dt | toMinSecFormat}}</span>
@@ -33,14 +33,14 @@
       </el-col>
       <el-col :span="6">
         <div class="sound">
-          <span class="iconfont icon-shengyin"></span>
-          <div class="soundSlide">
+          <span :class="['iconfont',soundState ? 'icon-shengyin' : 'icon-jingyin']" @click="isMute(soundState)"></span>
+          <div class="soundSlide" ref="soundSilde">
+              <span class="fg" ref="soundFg" :style="{ width: soundFgWidth + 'px' }"></span>
+              <span class="item" ref="soundItem" :style="{ left: soundItemLeft + 'px' }"></span>
               <span class="bg"></span>
-              <span class="fg"></span>
-              <span class="item"></span>
           </div>
         </div>
-      <audio ref="myAudio" :src="myAudio.url" @ended="stopTiem()"></audio>
+      <audio ref="myAudio" :src="myAudio.url" @ended="stopTiem()" @stalled="pause()"></audio>
       </el-col>
     </el-row>
   </div>
@@ -54,69 +54,141 @@ export default {
       isPlay: false,
       myAudio: {
         url: '',
-        duration: ''
+        duration: '',
+        volume: 1
       },
       nowTime: 0,
       timer: '',
       isEnd: false,
-      fgWidth: 0, // 前景色宽度
-      itemLeft: -5, // 滑块位置
-      s: 0
+      timeFgWidth: 0, // 播放进度控制前景色宽度
+      timeItemLeft: -5, // 播放进度控制滑块位置
+      s: 0,
+      soundFgWidth: 100,
+      soundItemLeft: 95,
+      soundState: true // 控制音量图标切换
     }
   },
   created () {
   },
   mounted () {
-    // 布局原因无法获取小圆点的offsetleft
-    let startX = 0
-    let mouseStartX = 0
-    this.$refs.item.onmousedown = (ev) => {
-      ev = ev || event
-      startX = this.$refs.item.offsetLeft
-      mouseStartX = ev.pageX
-      if (this.myAudio.url) {
-        this.stopOrPlay(false)
-      }
-      this.$refs.slide.onmousemove = (ev) => {
-        ev = ev || event
-        if (this.fgWidth >= 0 && this.fgWidth <= 300) {
-          this.fgWidth = ev.pageX - mouseStartX + startX + 5
-        } else {
-          if (this.fgWidth > 300) {
-            this.fgWidth = 300
-          }
-          if (this.fgWidth < 0) {
-            this.fgWidth = 0
-          }
-        }
-        if (this.itemLeft >= -5 && this.itemLeft <= 295) {
-          this.itemLeft = ev.pageX - mouseStartX + startX
-        } else {
-          if (this.itemLeft > 295) {
-            this.itemLeft = 295
-          }
-          if (this.itemLeft < -5) {
-            this.itemLeft = -5
-          }
-        }
-      }
-      this.$refs.slide.onmouseup = (ev) => {
-        ev = ev || event
-        if (this.myAudio.url) {
-          this.stopOrPlay(true)
-          let time = this.fgWidth / 300 // 0 - 1
-          this.$refs.myAudio.currentTime = this.$refs.myAudio.duration * time
-          this.nowTime = Math.floor(this.$refs.myAudio.duration * time)
-        }
-        this.$refs.slide.onmousemove = null
-        this.$refs.slide.onmouseup = null
-      }
-    }
+    this.controlAudioTime()
+    this.controlAudioVolume()
   },
   computed: {
     ...mapState(['audioInfo', 'audioUrl'])
   },
   methods: {
+    // 禁音
+    isMute (flag) {
+      this.soundState = !this.soundState
+      if (flag) {
+        this.soundItemLeft = -5
+        this.soundFgWidth = 0
+        this.$refs.myAudio.volume = 0
+      } else {
+        this.soundItemLeft = 95
+        this.soundFgWidth = 100
+        this.$refs.myAudio.volume = 1
+      }
+    },
+    // 控制播放音量
+    controlAudioVolume () {
+      let startX = 0
+      let mouseStartX = 0
+      this.$refs.soundItem.onmousedown = (ev) => {
+        ev = ev || event
+        startX = this.$refs.soundItem.offsetLeft
+        mouseStartX = ev.pageX
+        this.$refs.soundSilde.onmousemove = (ev) => {
+          ev = ev || event
+          if (this.soundFgWidth >= 0 && this.soundFgWidth <= 100) {
+            this.soundFgWidth = ev.pageX - mouseStartX + startX + 5
+          } else {
+            if (this.soundFgWidth > 100) {
+              this.soundFgWidth = 100
+            }
+            if (this.soundFgWidth < 0) {
+              this.soundFgWidth = 0
+            }
+          }
+          if (this.soundItemLeft >= -5 && this.soundItemLeft <= 95) {
+            this.soundItemLeft = ev.pageX - mouseStartX + startX
+          } else {
+            if (this.soundItemLeft > 95) {
+              this.soundItemLeft = 95
+              this.$refs.soundSilde.onmousemove = null
+              this.$refs.soundSilde.onmouseup = null
+            }
+            if (this.soundItemLeft < -5) {
+              this.soundItemLeft = -5
+              this.$refs.soundSilde.onmousemove = null
+              this.$refs.soundSilde.onmouseup = null
+            }
+          }
+        }
+        this.$refs.soundSilde.onmouseup = (ev) => {
+          ev = ev || event
+          this.$refs.myAudio.volume = this.soundFgWidth / 100
+          if (this.$refs.myAudio.volume === 0) {
+
+          }
+          this.$refs.soundSilde.onmousemove = null
+          this.$refs.soundSilde.onmouseup = null
+        }
+      }
+    },
+    // 控制播放时间
+    controlAudioTime () {
+      // 布局原因无法获取小圆点的offsetleft
+      let startX = 0
+      let mouseStartX = 0
+      this.$refs.item.onmousedown = (ev) => {
+        ev = ev || event
+        startX = this.$refs.item.offsetLeft
+        mouseStartX = ev.pageX
+        if (this.myAudio.url) {
+          this.stopOrPlay(false)
+        }
+        this.$refs.slide.onmousemove = (ev) => {
+          ev = ev || event
+          if (this.timeFgWidth >= 0 && this.timeFgWidth <= 300) {
+            this.timeFgWidth = ev.pageX - mouseStartX + startX + 5
+          } else {
+            if (this.timeFgWidth > 300) {
+              this.timeFgWidth = 300
+            }
+            if (this.timeFgWidth < 0) {
+              this.timeFgWidth = 0
+            }
+          }
+          if (this.timeItemLeft >= -5 && this.timeItemLeft <= 295) {
+            this.timeItemLeft = ev.pageX - mouseStartX + startX
+          } else {
+            if (this.timeItemLeft > 295) {
+              this.timeItemLeft = 295
+              this.$refs.slide.onmousemove = null
+              this.$refs.slide.onmouseup = null
+            }
+            if (this.timeItemLeft < -5) {
+              this.timeItemLeft = -5
+              this.$refs.slide.onmousemove = null
+              this.$refs.slide.onmouseup = null
+            }
+          }
+        }
+        this.$refs.slide.onmouseup = (ev) => {
+          ev = ev || event
+          if (this.myAudio.url) {
+            this.stopOrPlay(true)
+            let time = this.timeFgWidth / 300 // 0 - 1
+            this.$refs.myAudio.currentTime = this.$refs.myAudio.duration * time
+            this.nowTime = Math.floor(this.$refs.myAudio.duration * time)
+          }
+          this.$refs.slide.onmousemove = null
+          this.$refs.slide.onmouseup = null
+        }
+      }
+    },
     // 双击时播放执行函数
     playMusic (urlData) {
       // 播放歌曲时先判断上一首的定时器是否已经关闭
@@ -126,8 +198,8 @@ export default {
       this.myAudio.url = urlData.url
       // 先获取一秒钟走多少px  先把歌曲的毫秒转化成秒
       // 获取歌曲详情
-      this.fgWidth = 0
-      this.itemLeft = -5
+      this.timeFgWidth = 0
+      this.timeItemLeft = -5
       this.$nextTick(() => {
         this.$refs.myAudio.play()
         if (this.timer) {
@@ -137,8 +209,8 @@ export default {
         }
         this.timer = setInterval(() => {
           this.nowTime = this.nowTime + 1
-          this.fgWidth = this.fgWidth + this.s
-          this.itemLeft = this.itemLeft + this.s
+          this.timeFgWidth = this.timeFgWidth + this.s
+          this.timeItemLeft = this.timeItemLeft + this.s
         }, 1000)
       })
       if (!this.isPlay) {
@@ -161,8 +233,8 @@ export default {
           })
           this.timer = setInterval(() => {
             this.nowTime = this.nowTime + 1
-            this.fgWidth = this.fgWidth + this.s
-            this.itemLeft = this.itemLeft + this.s
+            this.timeFgWidth = this.timeFgWidth + this.s
+            this.timeItemLeft = this.timeItemLeft + this.s
           }, 1000)
         }
       }
@@ -302,7 +374,7 @@ export default {
           height: 30px;
           margin-left: 30px;
           position: relative;
-          .itemSlide(150px,150px,150px)
+          .itemSlide(100px,0px,0px)
         }
       }
     }
